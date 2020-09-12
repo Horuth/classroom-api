@@ -1,0 +1,34 @@
+version: '3.7'
+services:
+    db:
+        image: mysql
+        command: ["--default-authentication-plugin=mysql_native_password"]
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        volumes:
+            - ./mysql:/var/lib/mysql
+    php:
+        build: ./docker/php-fpm
+        ports:
+            - "9000:9001"
+        volumes:
+            - ./app:/var/www/app:cached
+            - ./logs/app:/var/www/app/var/log:cached
+        links:
+            - db
+        extra_hosts:
+            - "docker-host.localhost:127.0.0.1"
+    nginx:
+        build: ./docker/nginx
+        ports:
+            - "80:80"
+        links:
+            - php
+        volumes:
+            - ./logs/nginx:/var/log/nginx:cached
+            - ./app:/var/www/app:cached
